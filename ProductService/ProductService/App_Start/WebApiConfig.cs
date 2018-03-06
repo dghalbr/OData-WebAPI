@@ -23,6 +23,9 @@ namespace ProductService
                 defaults: new { id = RouteParameter.Optional }
             );
 
+            // Enable Filtering
+            config.Filter();
+
             /*
              * This code does two things:
              *  - Creates an Entity Data Model (EDM).
