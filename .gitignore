@@ -1,0 +1,7 @@
+*/.vs/**/*
+
+*/packages/**/*
+*/ProductService/bin/**/*
+*/ProductService/obj/**/*
+
+*/ProductClient/.cov/**/*
