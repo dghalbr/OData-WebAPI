@@ -5,3 +5,5 @@
 */ProductService/obj/**/*
 
 */ProductClient/.cov/**/*
+*/ProductClient/bin/**/*
+*/ProductClient/obj/**/*

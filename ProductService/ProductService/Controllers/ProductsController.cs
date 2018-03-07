@@ -1,9 +1,6 @@
 ﻿using Microsoft.OData;
-using Microsoft.OData.UriParser;
 using ProductService.Models;
 using System;
-using System.Collections.Generic;
-using System.Configuration;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -15,8 +12,6 @@ using System.Web.Http.Routing;
 using System.Web.OData;
 using System.Web.OData.Extensions;
 using System.Web.OData.Routing;
-using System.Web.OData.Properties;
-using Microsoft.OData.Edm;
 using System.Web.OData.Routing.Template;
 
 namespace ProductService.Controllers
@@ -34,7 +29,7 @@ namespace ProductService.Controllers
             //Product ID is the OData Key as well as the Key in the DB
             return db.Products.Any(p => p.Id == key);
         }
-        
+
         protected override void Dispose(bool disposing)
         {
             db.Dispose();
@@ -76,7 +71,7 @@ namespace ProductService.Controllers
             var result = db.Products.Where(m => m.Id == key).Select(m => m.Supplier);
             return SingleResult.Create(result);
         }
-        
+
         /*
          * Create/Add a new Entity.
          */
@@ -199,7 +194,7 @@ namespace ProductService.Controllers
                 case "Supplier":
                     // Note: The code for GetKeyFromUri is shown later in this topic.
                     var relatedKey = Helpers.GetKeyFromUri<int>(Request, link);
-                    var supplier =  await db.Suppliers.SingleOrDefaultAsync(f => f.Id == relatedKey);
+                    var supplier = await db.Suppliers.SingleOrDefaultAsync(f => f.Id == relatedKey);
                     if (supplier == null)
                     {
                         return NotFound();
@@ -215,35 +210,35 @@ namespace ProductService.Controllers
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        public async Task<IHttpActionResult> DeleteRef([FromODataUri] int key, 
+        public async Task<IHttpActionResult> DeleteRef([FromODataUri] int key,
         [FromODataUri] string relatedKey, string navigationProperty)
-    {
-        var supplier = await db.Suppliers.SingleOrDefaultAsync(p => p.Id == key);
-        if (supplier == null)
         {
-            return StatusCode(HttpStatusCode.NotFound);
+            var supplier = await db.Suppliers.SingleOrDefaultAsync(p => p.Id == key);
+            if (supplier == null)
+            {
+                return StatusCode(HttpStatusCode.NotFound);
+            }
+
+            switch (navigationProperty)
+            {
+                case "Products":
+                    var productId = Convert.ToInt32(relatedKey);
+                    var product = await db.Products.SingleOrDefaultAsync(p => p.Id == productId);
+
+                    if (product == null)
+                    {
+                        return NotFound();
+                    }
+                    product.Supplier = null;
+                    break;
+                default:
+                    return StatusCode(HttpStatusCode.NotImplemented);
+
+            }
+            await db.SaveChangesAsync();
+
+            return StatusCode(HttpStatusCode.NoContent);
         }
-
-        switch (navigationProperty)
-        {
-            case "Products":
-                var productId = Convert.ToInt32(relatedKey);
-                var product = await db.Products.SingleOrDefaultAsync(p => p.Id == productId);
-
-                if (product == null)
-                {
-                    return NotFound();
-                }
-                product.Supplier = null;
-                break;
-            default:
-                return StatusCode(HttpStatusCode.NotImplemented);
-
-        }
-        await db.SaveChangesAsync();
-
-        return StatusCode(HttpStatusCode.NoContent);
-    }
     }
 
     public static class Helpers
@@ -267,7 +262,7 @@ namespace ProductService.Controllers
             var odataPath = request.ODataProperties().Path;
 
             var keySegment = odataPath.Segments.OfType<KeySegmentTemplate>().LastOrDefault().Segment.Keys.LastOrDefault();
-            
+
             if (keySegment.Key == null)
             {
                 throw new InvalidOperationException("The link does not contain a key.");
@@ -277,4 +272,3 @@ namespace ProductService.Controllers
         }
     }
 }
- 
